@@ -12,6 +12,12 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 // Setup bot handlers
 setupBot(bot);
 
+// Error Handling
+bot.catch((err, ctx) => {
+    console.error(`Error for ${ctx.updateType}`, err);
+    ctx.reply('Maaf, terjadi kesalahan teknis pada server. Silakan coba lagi nanti.');
+});
+
 // Webhook setup
 const webhookPath = `/telegraf/${bot.secretPathComponent()}`;
 if (process.env.NODE_ENV === 'production') {

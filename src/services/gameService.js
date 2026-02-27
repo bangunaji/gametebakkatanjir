@@ -2,8 +2,15 @@ const prisma = require('../database/prisma');
 const crypto = require('crypto');
 const { normalizeString } = require('../utils/stringNormalizer');
 
+const roomInclude = {
+    include: { player1: true, player2: true }
+};
+
 async function setWord(roomId, userId, word) {
-    const room = await prisma.room.findUnique({ where: { id: roomId } });
+    const room = await prisma.room.findUnique({
+        where: { id: roomId },
+        ...roomInclude
+    });
     if (!room) throw new Error('Room not found');
 
     const updateData = {};
@@ -16,6 +23,7 @@ async function setWord(roomId, userId, word) {
     return await prisma.room.update({
         where: { id: roomId },
         data: { ...updateData, last_action_at: new Date() },
+        ...roomInclude
     });
 }
 
@@ -24,6 +32,7 @@ async function setReady(roomId, userId) {
         const room = await tx.room.findUnique({
             where: { id: roomId },
             lock: { mode: 'update' },
+            ...roomInclude
         });
 
         const isP1 = room.player1_id === userId;
@@ -32,6 +41,7 @@ async function setReady(roomId, userId) {
         const updatedRoom = await tx.room.update({
             where: { id: roomId },
             data: { ...updateData, last_action_at: new Date() },
+            ...roomInclude
         });
 
         // Check if both are ready to transition state
@@ -40,6 +50,7 @@ async function setReady(roomId, userId) {
                 return await tx.room.update({
                     where: { id: roomId },
                     data: { state: 'READY_CHECK' },
+                    ...roomInclude
                 });
             } else if (updatedRoom.state === 'READY_CHECK') {
                 const turnPlayerId = crypto.randomInt(0, 2) === 0 ? updatedRoom.player1_id : updatedRoom.player2_id;
@@ -49,6 +60,7 @@ async function setReady(roomId, userId) {
                         state: 'PLAYING',
                         turn_player_id: turnPlayerId,
                     },
+                    ...roomInclude
                 });
             }
         }
@@ -61,6 +73,7 @@ async function setStartConfirm(roomId, userId) {
         const room = await tx.room.findUnique({
             where: { id: roomId },
             lock: { mode: 'update' },
+            ...roomInclude
         });
 
         const isP1 = room.player1_id === userId;
@@ -69,12 +82,14 @@ async function setStartConfirm(roomId, userId) {
         const updatedRoom = await tx.room.update({
             where: { id: roomId },
             data: { ...updateData, last_action_at: new Date() },
+            ...roomInclude
         });
 
         if (updatedRoom.player1_start_confirm && updatedRoom.player2_start_confirm) {
             return await tx.room.update({
                 where: { id: roomId },
                 data: { state: 'INPUT_SECRET' },
+                ...roomInclude
             });
         }
         return updatedRoom;
@@ -86,6 +101,7 @@ async function processAnswer(roomId, userId, answer) {
         const room = await tx.room.findUnique({
             where: { id: roomId },
             lock: { mode: 'update' },
+            ...roomInclude
         });
 
         if (room.state !== 'PLAYING') throw new Error('Game is not in playing state');
@@ -106,6 +122,7 @@ async function processAnswer(roomId, userId, answer) {
                     [room.player1_id === userId ? 'player1_score' : 'player2_score']: { increment: 1 },
                     last_action_at: new Date(),
                 },
+                ...roomInclude
             });
 
             // Clear current_room_id for both players
@@ -123,6 +140,7 @@ async function processAnswer(roomId, userId, answer) {
                     turn_player_id: opponentId,
                     last_action_at: new Date(),
                 },
+                ...roomInclude
             });
             return { correct: false, room: updatedRoom };
         }

@@ -13,7 +13,8 @@ function validateState(requiredStates) {
 
         const { roomService } = require('../services/roomService'); // Lazy require
         const room = await require('../database/prisma').room.findUnique({
-            where: { id: user.current_room_id }
+            where: { id: user.current_room_id },
+            include: { player1: true, player2: true }
         });
 
         if (!room) {
