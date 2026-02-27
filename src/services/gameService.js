@@ -31,7 +31,6 @@ async function setReady(roomId, userId) {
     return await prisma.$transaction(async (tx) => {
         const room = await tx.room.findUnique({
             where: { id: roomId },
-            lock: { mode: 'update' },
             ...roomInclude
         });
 
@@ -72,7 +71,6 @@ async function setStartConfirm(roomId, userId) {
     return await prisma.$transaction(async (tx) => {
         const room = await tx.room.findUnique({
             where: { id: roomId },
-            lock: { mode: 'update' },
             ...roomInclude
         });
 
@@ -100,7 +98,6 @@ async function processAnswer(roomId, userId, answer) {
     return await prisma.$transaction(async (tx) => {
         const room = await tx.room.findUnique({
             where: { id: roomId },
-            lock: { mode: 'update' },
             ...roomInclude
         });
 
