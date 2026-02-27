@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum GameState {
+  WAITING_START
+  INPUT_SECRET
+  READY_CHECK
+  PLAYING
+  FINISHED
+}
+
+model User {
+  id              Int      @id @default(autoincrement())
+  telegram_id     BigInt   @unique
+  username        String?
+  current_room_id String?  @db.Uuid
+  created_at      DateTime @default(now())
+
+  // Relations
+  current_room    Room?    @relation("UserCurrentRoom", fields: [current_room_id], references: [id])
+  rooms_as_p1     Room[]   @relation("Player1")
+  rooms_as_p2     Room[]   @relation("Player2")
+  rooms_turn      Room[]   @relation("TurnPlayer")
+  rooms_won       Room[]   @relation("Winner")
+}
+
+model Room {
+  id                    String    @id @default(uuid()) @db.Uuid
+  player1_id            Int
+  player2_id            Int
+  state                 GameState @default(WAITING_START)
+  turn_player_id        Int?
+  player1_word          String?
+  player2_word          String?
+  player1_ready         Boolean   @default(false)
+  player2_ready         Boolean   @default(false)
+  player1_start_confirm Boolean   @default(false)
+  player2_start_confirm Boolean   @default(false)
+  player1_score         Int       @default(0)
+  player2_score         Int       @default(0)
+  winner_id             Int?
+  last_action_at        DateTime  @default(now())
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  // Relations
+  player1     User @relation("Player1", fields: [player1_id], references: [id])
+  player2     User @relation("Player2", fields: [player2_id], references: [id])
+  turn_player User? @relation("TurnPlayer", fields: [turn_player_id], references: [id])
+  winner      User? @relation("Winner", fields: [winner_id], references: [id])
+  current_users User[] @relation("UserCurrentRoom")
+
+  @@index([state])
+  @@index([player1_id])
+  @@index([player2_id])
+}
