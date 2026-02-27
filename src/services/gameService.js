@@ -122,12 +122,6 @@ async function processAnswer(roomId, userId, answer) {
                 ...roomInclude
             });
 
-            // Clear current_room_id for both players
-            await tx.user.updateMany({
-                where: { current_room_id: roomId },
-                data: { current_room_id: null },
-            });
-
             return { correct: true, room: updatedRoom };
         } else {
             // Wrong answer, switch turn

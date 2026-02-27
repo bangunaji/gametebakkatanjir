@@ -59,18 +59,20 @@ async function leaveRoom(userId, roomId) {
             where: { id: roomId },
         });
 
-        if (!room || room.state === 'FINISHED') return;
+        if (!room) return;
 
-        // Set winner as the other player
-        const winnerId = room.player1_id === userId ? room.player2_id : room.player1_id;
+        if (room.state !== 'FINISHED') {
+            // Set winner as the other player
+            const winnerId = room.player1_id === userId ? room.player2_id : room.player1_id;
 
-        await tx.room.update({
-            where: { id: roomId },
-            data: {
-                state: 'FINISHED',
-                winner_id: winnerId,
-            },
-        });
+            await tx.room.update({
+                where: { id: roomId },
+                data: {
+                    state: 'FINISHED',
+                    winner_id: winnerId,
+                },
+            });
+        }
 
         await tx.user.updateMany({
             where: { current_room_id: roomId },

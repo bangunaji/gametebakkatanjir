@@ -9,7 +9,7 @@ function setupBot(bot) {
     // Commands
     bot.command('start', handlers.startHandler);
     bot.command('cari', handlers.cariHandler);
-    bot.command('mulai', validateState(['WAITING_START']), handlers.mulaiHandler);
+    bot.command('mulai', validateState(['WAITING_START', 'FINISHED']), handlers.mulaiHandler);
     bot.command('simpankata', validateState(['INPUT_SECRET']), handlers.simpanKataHandler);
     bot.command('selesaisimpan', validateState(['INPUT_SECRET']), handlers.selesaiSimpanHandler);
     bot.command('siap', validateState(['READY_CHECK', 'INPUT_SECRET']), handlers.siapHandler);
@@ -20,7 +20,7 @@ function setupBot(bot) {
     bot.on('callback_query', handlers.callbackHandler);
 
     // Text Relay
-    bot.on('text', validateState(['PLAYING']), handlers.textHandler);
+    bot.on('text', validateState(['PLAYING', 'FINISHED']), handlers.textHandler);
 
     // Set help/command list
     bot.telegram.setMyCommands([

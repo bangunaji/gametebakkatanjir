@@ -130,7 +130,7 @@ async function jawabHandler(ctx) {
         const p2Id = Number(result.room.player2.telegram_id);
 
         if (result.correct) {
-            const msg = `🎉 @${user.username} BENAR! Katanya adalah "${answer}". @${user.username} Menang!\nSkor: @${result.room.player1.username}: ${result.room.player1_score} | @${result.room.player2.username}: ${result.room.player2_score}`;
+            const msg = `🎉 @${user.username} BENAR! Katanya adalah "${answer}". @${user.username} Menang!\nSkor: @${result.room.player1.username}: ${result.room.player1_score} | @${result.room.player2.username}: ${result.room.player2_score}\n\nKetik /mulai jika ingin bermain kembali di room ini, atau ketik chat bebas untuk mengobrol. Ketik /keluar untuk mengakhiri.`;
             ctx.telegram.sendMessage(p1Id, msg);
             ctx.telegram.sendMessage(p2Id, msg);
         } else {
@@ -157,7 +157,7 @@ async function textHandler(ctx) {
     const user = ctx.state.dbUser;
     const room = ctx.state.room;
 
-    if (room && room.state === 'PLAYING') {
+    if (room && (room.state === 'PLAYING' || room.state === 'FINISHED')) {
         const opponentId = room.player1_id === user.id ? room.player2.telegram_id : room.player1.telegram_id;
         ctx.telegram.sendMessage(Number(opponentId), `💬 @${user.username}: ${ctx.message.text}`);
     }
